@@ -2,7 +2,9 @@ package hello.core.scope;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import jakarta.inject.Provider;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Scope;
@@ -34,20 +36,27 @@ public class SingletonWithPrototypeTest1 {
 
         ClientBean clientBean2 = ac.getBean(ClientBean.class);
         int count2 = clientBean2.logic();
-        assertThat(count2).isEqualTo(2);
+        assertThat(count2).isEqualTo(1);
 
     }
 
     @Scope("singleton")
     static class ClientBean {
-        private final PrototypeBean prototypeBean;  // 생성 시점에 주입
+//        private final PrototypeBean prototypeBean;  // 생성 시점에 주입
 
-        @Autowired // 생성자 하나일 땐 생략가능. 아예 생성자 자체를 생략하려면 @RequiredArgsConstructor 사용
-        public ClientBean(PrototypeBean prototypeBean) {
-            this.prototypeBean = prototypeBean;
-        }
+//        @Autowired // 생성자 하나일 땐 생략가능. 아예 생성자 자체를 생략하려면 @RequiredArgsConstructor 사용
+//        public ClientBean(PrototypeBean prototypeBean) {
+//            this.prototypeBean = prototypeBean;
+//        }
+
+//        @Autowired
+//        private ObjectProvider<PrototypeBean> prototypeBeanProvider;
+        @Autowired
+        private Provider<PrototypeBean> prototypeBeanProvider;
 
         public int logic() {
+//            PrototypeBean prototypeBean = prototypeBeanProvider.getObject();
+            PrototypeBean prototypeBean = prototypeBeanProvider.get();
             prototypeBean.addCount();
             return prototypeBean.getCount();
         }
@@ -69,12 +78,12 @@ public class SingletonWithPrototypeTest1 {
 
         @PostConstruct
         public void init() {
-            System.out.println("PrototypeBean.init");
+            System.out.println("PrototypeBean.init " + this);
         }
 
         @PreDestroy
         public void destory() {
-            System.out.println("PrototypeBean.destory");
+            System.out.println("PrototypeBean.destory " + this);
         }
     }
 }
